@@ -13,7 +13,7 @@ const port = config.PORT;
 
 
 //database connection 
-// connectdb();
+connectdb();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
