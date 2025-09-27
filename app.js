@@ -6,6 +6,7 @@ const fileUpload = require("express-fileupload");
 
 const config = require("./config/config.js");
 const eventRoutes = require("./routes/events.js");
+const messageRoutes = require("./routes/messages.js");
 const connectdb = require("./config/db/index.js");
 
 const app = express();
@@ -22,6 +23,7 @@ app.use(fileUpload());
 
 //Routes
 app.use("/api/event", eventRoutes);
+app.use("/api/message", messageRoutes);
 
 
 app.listen(port, () => {
