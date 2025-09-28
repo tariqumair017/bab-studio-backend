@@ -50,7 +50,7 @@ router.post("/create", auth, async (req, res) => {
 });
 
 // get all events
-router.get("/get-all", auth, async (req, res) => {
+router.get("/get-all", async (req, res) => {
     try {
         const events = await Event.find({}).sort({ createdAt: -1 });
         return res.json({ events });
@@ -60,7 +60,7 @@ router.get("/get-all", auth, async (req, res) => {
 });
 
 // get event by id
-router.get("/get-single/:id", auth, async (req, res) => {
+router.get("/get-single/:id", async (req, res) => {
     try {
         if (!req.params.id) {
             return res.status(400).json({ message: "Event ID is required" });

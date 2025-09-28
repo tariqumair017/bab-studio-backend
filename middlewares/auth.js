@@ -1,24 +1,50 @@
-const config = require("../config/config.js");
-// Simple static-secret auth middleware
-// Usage: set ADMIN_SECRET in .env. Client sends header Authorization: Bearer <ADMIN_SECRET>
-module.exports = function auth(req, res, next) {
+const jwt = require('jsonwebtoken');
+
+const auth = (req, res, next) => {
     try {
-        const authHeader = req.headers["authorization"] || "";
-        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
-        const expected = config.ADMIN_SECRET;
-
-        if (!expected) {
-            return res.status(500).json({ message: "Server misconfigured: ADMIN_SECRET not set" });
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ 
+                success: false,
+                message: 'Access denied. No token provided.' 
+            });
         }
 
-        if (!token || token !== expected) {
-            return res.status(401).json({ message: "Unauthorized" });
+        const token = authHeader.split(' ')[1];
+        const jwtSecret = process.env.JWT_SECRET;
+
+        if (!jwtSecret) {
+            return res.status(500).json({ 
+                success: false,
+                message: 'Server configuration error' 
+            });
         }
 
-        return next();
-    } catch (err) {
-        return res.status(401).json({ message: "Unauthorized" });
+        const decoded = jwt.verify(token, jwtSecret);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ 
+                success: false,
+                message: 'Token expired' 
+            });
+        } else if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ 
+                success: false,
+                message: 'Invalid token' 
+            });
+        }
+        
+        console.error('Auth middleware error:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Internal server error' 
+        });
     }
 };
+
+module.exports = auth;
 
 
