@@ -16,6 +16,7 @@ const port = config.PORT;
 
 const allowedOrigins = [
   'http://localhost:5173',
+  'https://bab-studio.com'
 ];
 
 const corsOptions = {
@@ -39,10 +40,22 @@ app.use(cors(corsOptions));
 //database connection 
 connectdb();
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '50mb' }));
 app.use(morgan("dev")); 
-app.use(fileUpload());
+app.use(fileUpload({
+  createParentPath: true,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB max file size
+  },
+  limitHandler: (req, res) => {
+    res.status(413).json({
+      error: 'File size too large. Maximum allowed size is 50MB per file.'
+    });
+  },
+  abortOnLimit: true,
+  responseOnLimit: 'File size limit has been reached'
+}));
 
 //Routes
 app.use("/api/auth", authRoutes);
